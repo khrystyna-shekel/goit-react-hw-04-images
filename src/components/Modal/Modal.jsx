@@ -1,32 +1,28 @@
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
 
-export class Modal extends Component {
-  componentDidMount() {
-    document.addEventListener('keydown', this.handleKeydown);
-  }
+export const Modal = ({ closeModal, modalImgUrl }) => {
+  useEffect(() => {
+    const handleKeydown = e => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    };
+    document.addEventListener('keydown', handleKeydown);
 
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.handleKeydown);
-  }
+    return () => {
+      document.removeEventListener('keydown', handleKeydown);
+    };
+  }, [closeModal]);
 
-  handleKeydown = e => {
-    if (e.key === 'Escape') {
-      this.props.closeModal();
-    }
-  };
-
-  render() {
-    const { modalImgUrl, closeModal } = this.props;
-    return (
-      <StyledOverlay onClick={closeModal}>
-        <div>
-          <img src={modalImgUrl} alt="img" />
-        </div>
-      </StyledOverlay>
-    );
-  }
-}
+  return (
+    <StyledOverlay onClick={closeModal}>
+      <div>
+        <img src={modalImgUrl} alt="img" />
+      </div>
+    </StyledOverlay>
+  );
+};
 
 const StyledOverlay = styled.div`
   position: fixed;

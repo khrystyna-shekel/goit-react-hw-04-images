@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SearchBar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Button } from './Button/Button';
@@ -8,96 +8,97 @@ import { Loader } from './Loader/Loader';
 import { fetchGallary, fetchGallaryByQuery } from 'services/api';
 import { StyledWrapper } from './App.Styled';
 
-export class App extends Component {
-  state = {
-    search: '',
-    images: [],
-    page: 1,
-    isLoading: false,
-    isModalOpen: false,
-    showLoadMore: true,
-    modalImgUrl: '',
-  };
+export const App = () => {
+  const [search, setSearch] = useState('');
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showLoadMore, setShowLoadMore] = useState(true);
+  const [modalImgUrl, setModalImgUrl] = useState('');
 
-  async componentDidMount() {
-    try {
-      this.setState({ isLoading: true });
+  // useEffect(() => {
+  //   const getImages = async () => {
+  //     try {
+  //       setIsLoading(true);
+  //       const { hits } = search
+  //         ? await fetchGallaryByQuery({ search, page })
+  //         : await fetchGallary({ page });
+  //       setImages(prevState => [...prevState, ...hits]);
+  //     } catch (error) {
+  //       console.log(error.message);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
-      const { hits } = await fetchGallary();
-      this.setState({ images: hits });
-    } catch (error) {
-      console.log(error.message);
-    } finally {
-      this.setState({ isLoading: false });
-    }
-  }
+  //   getImages();
+  // }, [page, search]);
 
-  onSubmit = e => {
-    e.preventDefault();
-    this.setState({ page: 1 });
-
-    const search = e.currentTarget.elements.search.value;
-    this.setState({ search });
-  };
-
-  async componentDidUpdate(_, prevState) {
-    if (
-      prevState.page !== this.state.page ||
-      prevState.search !== this.state.search
-    ) {
+  useEffect(() => {
+    const getImages = async () => {
       try {
-        this.setState({ isLoading: true });
-        const { hits } = await fetchGallaryByQuery(
-          this.state.search,
-          this.state.page
-        );
+        setIsLoading(true);
+        const { hits } = await fetchGallary();
+        setImages(hits);
+      } catch (error) {
+        console.log(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getImages();
+  }, []);
 
-        if (prevState.search !== this.state.search) {
-          this.setState({ images: hits });
+  const onSubmit = e => {
+    e.preventDefault();
+    setPage(1);
+
+    setSearch(e.currentTarget.elements.search.value);
+  };
+
+  useEffect(() => {
+    const getImagesByQuery = async () => {
+      try {
+        setIsLoading(true);
+        const { hits } = await fetchGallaryByQuery(search, page);
+        if (page === 1) {
+          setImages(hits);
         } else {
-          this.setState(prevState => ({
-            images: [...prevState.images, ...hits],
-          }));
+          setImages(prevState => [...prevState, ...hits]);
         }
       } catch (error) {
         console.log(error.message);
       } finally {
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       }
-    }
-  }
+    };
+    getImagesByQuery();
+  }, [page, search]);
 
-  handleLoadBtn = async () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-      showLoadMore: true,
-    }));
+  const handleLoadBtn = async () => {
+    setPage(prevState => prevState + 1);
+    setShowLoadMore(true);
   };
 
-  openModal = targetImgUrl => {
-    this.setState(prevState => ({
-      modalImgUrl: targetImgUrl,
-      isModalOpen: true,
-    }));
+  const openModal = targetImgUrl => {
+    setModalImgUrl(targetImgUrl);
+    setIsModalOpen(true);
   };
 
-  closeModal = e => {
-    this.setState({ isModalOpen: false });
+  const closeModal = e => {
+    setIsModalOpen(false);
   };
 
-  render() {
-    const { images, isModalOpen, modalImgUrl, isLoading, showLoadMore } =
-      this.state;
-    return (
-      <StyledWrapper>
-        {isModalOpen && (
-          <Modal closeModal={this.closeModal} modalImgUrl={modalImgUrl} />
-        )}
-        <SearchBar onSubmit={this.onSubmit} />
-        <ImageGallery images={images} openModal={this.openModal} />
-        {showLoadMore && <Button handleLoadBtn={this.handleLoadBtn} />}
-        {isLoading && <Loader wrapperStyle={{ margin: '0 auto' }} />}
-      </StyledWrapper>
-    );
-  }
-}
+  return (
+    <StyledWrapper>
+      {isModalOpen && (
+        <Modal closeModal={closeModal} modalImgUrl={modalImgUrl} />
+      )}
+      <SearchBar onSubmit={onSubmit} />
+      <ImageGallery images={images} openModal={openModal} />
+      {showLoadMore && <Button handleLoadBtn={handleLoadBtn} />}
+      {isLoading && <Loader wrapperStyle={{ margin: '0 auto' }} />}
+    </StyledWrapper>
+  );
+};
