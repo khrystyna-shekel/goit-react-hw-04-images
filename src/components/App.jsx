@@ -5,7 +5,7 @@ import { Button } from './Button/Button';
 import { Modal } from './Modal/Modal';
 import { Loader } from './Loader/Loader';
 
-import { fetchGallary, fetchGallaryByQuery } from 'services/api';
+import { fetchGallaryByQuery } from 'services/api';
 import { StyledWrapper } from './App.Styled';
 
 export const App = () => {
@@ -17,43 +17,10 @@ export const App = () => {
   const [showLoadMore, setShowLoadMore] = useState(true);
   const [modalImgUrl, setModalImgUrl] = useState('');
 
-  // useEffect(() => {
-  //   const getImages = async () => {
-  //     try {
-  //       setIsLoading(true);
-  //       const { hits } = search
-  //         ? await fetchGallaryByQuery({ search, page })
-  //         : await fetchGallary({ page });
-  //       setImages(prevState => [...prevState, ...hits]);
-  //     } catch (error) {
-  //       console.log(error.message);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   getImages();
-  // }, [page, search]);
-
-  useEffect(() => {
-    const getImages = async () => {
-      try {
-        setIsLoading(true);
-        const { hits } = await fetchGallary();
-        setImages(hits);
-      } catch (error) {
-        console.log(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    getImages();
-  }, []);
-
   const onSubmit = e => {
     e.preventDefault();
     setPage(1);
-
+    setIsLoading(true);
     setSearch(e.currentTarget.elements.search.value);
   };
 
@@ -76,7 +43,7 @@ export const App = () => {
     getImagesByQuery();
   }, [page, search]);
 
-  const handleLoadBtn = async () => {
+  const handleLoadBtn = () => {
     setPage(prevState => prevState + 1);
     setShowLoadMore(true);
   };
